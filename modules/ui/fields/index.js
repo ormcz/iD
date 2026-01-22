@@ -47,6 +47,7 @@ import {
 
 import { uiFieldAccess } from './access';
 import { uiFieldAddress } from './address';
+import { uiFieldOrmczSignal } from './ormcz_signal.js';
 import { uiFieldDirectionalCombo } from './directional_combo';
 import { uiFieldLanes } from './lanes';
 import { uiFieldLocalized } from './localized';
@@ -64,6 +65,7 @@ export var uiFields = {
     colour: uiFieldColour,
     combo: uiFieldCombo,
     cycleway: uiFieldDirectionalCombo,
+    ormczSignal: uiFieldOrmczSignal,
     date: uiFieldText,
     defaultCheck: uiFieldDefaultCheck,
     directionalCombo: uiFieldDirectionalCombo,

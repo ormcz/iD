@@ -27,6 +27,10 @@ export function presetPreset(presetID, preset, addable, allFields, allPresets) {
 
   _this.safeid = utilSafeClassName(presetID);  // for use in css classes, selectors, element ids
 
+    if (_this.id.includes("integrovanadopravaplzenskehokraje"))
+        // debugger;
+        ;
+
   _this.originalTerms = (_this.terms || []).join();
 
   _this.originalName = _this.name || '';

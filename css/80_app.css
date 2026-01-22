@@ -1,5 +1,14 @@
 /* Basics
 ------------------------------------------------------- */
+.form-field.compound-field {
+    display: block;
+    transition: none;
+}
+
+.form-field.compound-field > label.field-label {
+    display: none;
+}
+
 /* the root element of iD */
 .ideditor {
     height: 100%;
@@ -1423,7 +1432,7 @@ button.preset-reset .label.flash-bg {
 }
 
 .form-field.nowrap,
-.wrap-form-field:last-child .form-field {
+.wrap-form-field:last-child > .form-field {
     margin-bottom: 0;
 }
 

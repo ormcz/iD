@@ -1,5 +1,44 @@
 /* railways */
 
+g.vertex.tag-power.tag-power-catenary_mast .stroke,
+g.point.tag-power.tag-power-catenary_mast .stroke {
+    fill: cyan;
+}
+
+path.line.shadow.tag-power.tag-power-catenary_portal {
+    stroke-width: 14 !important;
+}
+
+path.line.casing.tag-power.tag-power-catenary_portal {
+    stroke: #666;
+    stroke-linecap: butt;
+    stroke-width: 6 !important;
+}
+
+path.line.stroke.tag-power.tag-power-catenary_portal {
+    stroke: cyan;
+    stroke-linecap: butt;
+    stroke-width: 3;
+}
+
+
+path.line.shadow.tag-power.tag-railway-platform_edge {
+    stroke-width: 14;
+}
+
+path.line.casing.tag-railway.tag-railway-platform_edge {
+    stroke: #666;
+    stroke-linecap: butt;
+    stroke-width: 6;
+}
+
+path.line.stroke.tag-railway.tag-railway-platform_edge {
+    stroke: #32d60d;
+    stroke-linecap: butt;
+    stroke-width: 3;
+}
+
+
 /* defaults */
 .preset-icon .icon.tag-railway.other-line {
     color: #fff;
@@ -41,7 +80,6 @@ path.line.stroke.tag-railway.tag-oneway {
     stroke-dasharray: 6;
 }
 
-path.line.casing.tag-railway.tag-railway-platform_edge,
 path.line.casing.tag-railway.tag-railway-platform {
     stroke-width: 0;
 }

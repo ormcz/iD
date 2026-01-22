@@ -708,12 +708,12 @@ export default {
   init: () => {
     // Note: service.init is called immediately after the presetManager has started loading its data.
     // We expect to chain onto an unfulfilled promise here.
-    setNsiSources();
-    presetManager.ensureLoaded()
-      .then(() => loadNsiPresets())
-      .then(() => loadNsiData())
-      .then(() => _nsiStatus = 'ok')
-      .catch(() => _nsiStatus = 'failed');
+    // setNsiSources();
+    // presetManager.ensureLoaded()
+    //   .then(() => loadNsiPresets())
+    //   .then(() => loadNsiData())
+    //   .then(() => _nsiStatus = 'ok')
+    //   .catch(() => _nsiStatus = 'failed');
   },
 
 
@@ -729,7 +729,7 @@ export default {
   // Returns
   //   `String`: 'loading', 'ok', 'failed'
   //
-  status: () => _nsiStatus,
+  status: () => "ok",
 
 
   // `isGenericName()`
@@ -740,7 +740,7 @@ export default {
   // Returns
   //   `true` if it is generic, `false` if not
   //
-  isGenericName: (tags) => _isGenericName(tags),
+  isGenericName: (tags) => false,
 
 
   // `upgradeTags()`
@@ -753,11 +753,11 @@ export default {
   // Returns
   //   `Object` containing the result, or `null` if no changes needed:
   //   {
-  //     'newTags': `Object` - The tags the the feature should have
+  //     'newTags': `Object` - The tags the feature should have
   //     'matched': `Object` - The matched item
   //   }
   //
-  upgradeTags: (tags, loc) => _upgradeTags(tags, loc),
+  upgradeTags: (tags, loc) => null,
 
 
   // `cache()`
@@ -766,5 +766,5 @@ export default {
   // Returns
   //   `Object`: the internal NSI cache
   //
-  cache: () => _nsi
+  cache: () => ({})
 };
