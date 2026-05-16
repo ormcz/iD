@@ -1,4 +1,4 @@
-name: Build and Deploy
+name: GitHub Pages Deployment
 
 on:
   push:
@@ -12,9 +12,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install and Build
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
         run: |
-          npm ci
           npm run dist
           npm run build
 
