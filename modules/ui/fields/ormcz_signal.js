@@ -785,18 +785,18 @@ export function uiFieldOrmczSignal(field, context) {
     };
 
 
-    function watchProperty(obj, propertyName, propValue) {
-        return new Proxy(obj, {
-            set(target, prop, value, receiver) {
-                if (prop === propertyName && value === propValue) {
-                    debugger; // execution pauses here
-                }
-                return Reflect.set(target, prop, value, receiver);
-            }
-        });
-    }
-
-    state = watchProperty(state, 'navestidlo', Navestidlo.NejakeNavestidlo);
+    // function watchProperty(obj, propertyName, propValue) {
+    //     return new Proxy(obj, {
+    //         set(target, prop, value, receiver) {
+    //             if (prop === propertyName && value === propValue) {
+    //                 debugger; // execution pauses here
+    //             }
+    //             return Reflect.set(target, prop, value, receiver);
+    //         }
+    //     });
+    // }
+    //
+    // state = watchProperty(state, 'navestidlo', Navestidlo.NejakeNavestidlo);
 
 
     function loadTags(newTags) {
