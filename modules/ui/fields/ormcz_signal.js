@@ -1,9 +1,9 @@
-import {select as d3_select} from 'd3-selection';
-import {dispatch as d3_dispatch} from 'd3-dispatch';
+import { select as d3_select } from 'd3-selection';
+import { dispatch as d3_dispatch } from 'd3-dispatch';
 
-import {utilRebind} from '../../util';
-import {uiField} from '../field.js';
-import {presetField} from '../../presets';
+import { utilRebind } from '../../util';
+import { uiField } from '../field.js';
+import { presetField } from '../../presets';
 
 /**
  * Custom field UI for Czech train signals
@@ -27,7 +27,9 @@ const SignalType = {
     Whistle: 'whistle',
 };
 
-function getRootForType(type) { return `railway:signal:${type}`; }
+function getRootForType(type) {
+    return `railway:signal:${type}`;
+}
 
 const SignalForm = {
     Light: 'light',
@@ -47,7 +49,7 @@ const SignalVariant = {
     SamostatnaPredvest: 'CZ-D1:samostatna_predvest',
     TabulkaSKrizem: 'CZ-D1:tabulka_s_krizem',
 
-    SeradovaciNavestidlo: 'CZ-D1:serazovaci_navestidlo', // TODO: this should be fixed at some point
+    SeradovaciNavestidlo: 'CZ-D1:seradovaci_navestidlo',
     VyckavaciNavestidlo: 'CZ-D1:vyckavaci_navestidlo',
     Oznacnik: 'CZ-D1:oznacnik',
     PosunZakazan: 'CZ-D1:posun_zakazan',
@@ -81,6 +83,7 @@ const SignalVariant = {
 
     NavestidloSloucenoSPredvesti: 'CZ-D1:hlavni_navestidlo_slouceno_s_predvesti',
     PosledniOddiloveNavestidlo: 'CZ-D1:stanoviste_posledniho_oddiloveho_navestidla',
+    StanovisteSamostatnePredvesti: 'CZ-D1:stanoviste_samostatne_predvesti',
     VlakSeBliziKZastavce: 'CZ-D1:vlak_se_blizi_k_zastavce',
 
     NavestidloSamovratneVyhybky: 'CZ-D1:navestidlo_vyhybky_se_samovratnym_prestavnikem',
@@ -106,6 +109,20 @@ const SignalState = {
     JizdaNezajistena: 'CZ-D1:jizda_nezajistena',
     JizdaZajistena: 'CZ-D1:jizda_zajistena',
 };
+
+const StateOrder = [
+    SignalState.Off,
+    SignalState.Stuj,
+    SignalState.OpakovaniVystraha,
+    SignalState.Vystraha,
+    SignalState.OpakovaniVolno,
+    SignalState.Volno,
+    SignalState.JizdaVlakuDovolena,
+    SignalState.PosunZakazan,
+    SignalState.PosunDovolen,
+    SignalState.JizdaNezajistena,
+    SignalState.JizdaZajistena
+];
 
 const Navestidlo = {
     NejakeNavestidlo: 'nejake_navestidlo',
@@ -317,75 +334,142 @@ function getVariantForNavestidlo(navestidlo) {
 }
 
 
-
 function determineNavestidlo(tags) {
 
     if (getRootForType(SignalType.Main) in tags || getRootForType(SignalType.Combined) in tags) {
-        if (tags[getRootForType(SignalType.Main)] === SignalVariant.HlavniNavestidlo) { return Navestidlo.Hlavni; }
-        if (tags[getRootForType(SignalType.Combined)] === SignalVariant.HlavniNavestidlo) { return Navestidlo.Hlavni; }
-        if (tags[getRootForType(SignalType.Main)] === SignalVariant.Stuj) { return Navestidlo.Stuj; }
+        if (tags[getRootForType(SignalType.Main)] === SignalVariant.HlavniNavestidlo) {
+            return Navestidlo.Hlavni;
+        }
+        if (tags[getRootForType(SignalType.Combined)] === SignalVariant.HlavniNavestidlo) {
+            return Navestidlo.Hlavni;
+        }
+        if (tags[getRootForType(SignalType.Main)] === SignalVariant.Stuj) {
+            return Navestidlo.Stuj;
+        }
 
         return Navestidlo.NejakeHlavni;
 
     } else if (getRootForType(SignalType.Distant) in tags) {
 
         if (tags[getRootForType(SignalType.Distant)] === SignalVariant.SamostatnaPredvest) {
- if (tags[getRootForType(SignalType.Distant) + ':repeated'] === 'yes') { return Navestidlo.OpakovaciPredvest; } else { return Navestidlo.SamostatnaPredvest; }
-}
-        if (tags[getRootForType(SignalType.Distant)] === SignalVariant.Vystraha) { return Navestidlo.Vystraha; }
-        if (tags[getRootForType(SignalType.Distant)] === SignalVariant.TabulkaSKrizem) { return Navestidlo.TabulkaSKrizem; }
+            if (tags[getRootForType(SignalType.Distant) + ':repeated'] === 'yes') {
+                return Navestidlo.OpakovaciPredvest;
+            } else {
+                return Navestidlo.SamostatnaPredvest;
+            }
+        }
+        if (tags[getRootForType(SignalType.Distant)] === SignalVariant.Vystraha) {
+            return Navestidlo.Vystraha;
+        }
+        if (tags[getRootForType(SignalType.Distant)] === SignalVariant.TabulkaSKrizem) {
+            return Navestidlo.TabulkaSKrizem;
+        }
 
         return Navestidlo.NejakaPredvest;
     } else if (getRootForType(SignalType.Shunting) in tags) {
 
-        if (tags[getRootForType(SignalType.Shunting)] === SignalVariant.SeradovaciNavestidlo) { return Navestidlo.Seradovaci; }
-        if (tags[getRootForType(SignalType.Shunting)] === SignalVariant.VyckavaciNavestidlo) { return Navestidlo.Vyckavaci; }
-        if (tags[getRootForType(SignalType.Shunting)] === SignalVariant.Oznacnik) { return Navestidlo.Oznacnik; }
-        if (tags[getRootForType(SignalType.Shunting)] === SignalVariant.PosunZakazan) { return Navestidlo.PosunZakazan; }
+        if (tags[getRootForType(SignalType.Shunting)] === SignalVariant.SeradovaciNavestidlo) {
+            return Navestidlo.Seradovaci;
+        }
+        if (tags[getRootForType(SignalType.Shunting)] === SignalVariant.VyckavaciNavestidlo) {
+            return Navestidlo.Vyckavaci;
+        }
+        if (tags[getRootForType(SignalType.Shunting)] === SignalVariant.Oznacnik) {
+            return Navestidlo.Oznacnik;
+        }
+        if (tags[getRootForType(SignalType.Shunting)] === SignalVariant.PosunZakazan) {
+            return Navestidlo.PosunZakazan;
+        }
 
         return Navestidlo.NejakeSeradovaci;
     } else if (getRootForType(SignalType.SpeedLimit) in tags) {
 
-        if (tags[getRootForType(SignalType.SpeedLimit)] === SignalVariant.RychlostnikN) { return Navestidlo.RychlostnikN; }
-        if (tags[getRootForType(SignalType.SpeedLimit)] === SignalVariant.HorniRychlostnikN) { return Navestidlo.HorniRychlostnikN; }
-        if (tags[getRootForType(SignalType.SpeedLimit)] === SignalVariant.RychlostnikNSPruhy) { return Navestidlo.RychlostnikNSPruhy; }
-        if (tags[getRootForType(SignalType.SpeedLimit)] === SignalVariant.RychlostnikNS) { return Navestidlo.RychlostnikNS; }
-        if (tags[getRootForType(SignalType.SpeedLimit)] === SignalVariant.RychlostnikR) { return Navestidlo.RychlostnikR; }
+        if (tags[getRootForType(SignalType.SpeedLimit)] === SignalVariant.RychlostnikN) {
+            return Navestidlo.RychlostnikN;
+        }
+        if (tags[getRootForType(SignalType.SpeedLimit)] === SignalVariant.HorniRychlostnikN) {
+            return Navestidlo.HorniRychlostnikN;
+        }
+        if (tags[getRootForType(SignalType.SpeedLimit)] === SignalVariant.RychlostnikNSPruhy) {
+            return Navestidlo.RychlostnikNSPruhy;
+        }
+        if (tags[getRootForType(SignalType.SpeedLimit)] === SignalVariant.RychlostnikNS) {
+            return Navestidlo.RychlostnikNS;
+        }
+        if (tags[getRootForType(SignalType.SpeedLimit)] === SignalVariant.RychlostnikR) {
+            return Navestidlo.RychlostnikR;
+        }
 
         return Navestidlo.NejakyRychlostnik;
     } else if (getRootForType(SignalType.SpeedLimitDistant) in tags) {
 
-        if (tags[getRootForType(SignalType.SpeedLimitDistant)] === SignalVariant.PredvestnikN) { return Navestidlo.PredvestnikN; }
-        if (tags[getRootForType(SignalType.SpeedLimitDistant)] === SignalVariant.HorniPredvestnikN) { return Navestidlo.HorniPredvestnikN; }
-        if (tags[getRootForType(SignalType.SpeedLimitDistant)] === SignalVariant.PredvestnikNS) { return Navestidlo.PredvestnikNS; }
-        if (tags[getRootForType(SignalType.SpeedLimitDistant)] === SignalVariant.PredvestnikR) { return Navestidlo.PredvestnikR; }
+        if (tags[getRootForType(SignalType.SpeedLimitDistant)] === SignalVariant.PredvestnikN) {
+            return Navestidlo.PredvestnikN;
+        }
+        if (tags[getRootForType(SignalType.SpeedLimitDistant)] === SignalVariant.HorniPredvestnikN) {
+            return Navestidlo.HorniPredvestnikN;
+        }
+        if (tags[getRootForType(SignalType.SpeedLimitDistant)] === SignalVariant.PredvestnikNS) {
+            return Navestidlo.PredvestnikNS;
+        }
+        if (tags[getRootForType(SignalType.SpeedLimitDistant)] === SignalVariant.PredvestnikR) {
+            return Navestidlo.PredvestnikR;
+        }
 
         return Navestidlo.NejakyPredvestnik;
     } else if (getRootForType(SignalType.Stop) in tags) {
-        if (tags[getRootForType(SignalType.Stop)] === SignalVariant.LichobeznikovaTabulka) { return Navestidlo.LichobeznikovaTabulka; }
-        if (tags[getRootForType(SignalType.Stop)] === SignalVariant.KonecNastupiste) { return Navestidlo.KonecNastupiste; }
+        if (tags[getRootForType(SignalType.Stop)] === SignalVariant.LichobeznikovaTabulka) {
+            return Navestidlo.LichobeznikovaTabulka;
+        }
+        if (tags[getRootForType(SignalType.Stop)] === SignalVariant.KonecNastupiste) {
+            return Navestidlo.KonecNastupiste;
+        }
         if (tags[getRootForType(SignalType.Stop)] === SignalVariant.MistoZastaveni) {
- if (tags[getRootForType(SignalType.Stop) + ':caption'] === 'Os') { return Navestidlo.MistoZastaveniOs; } else { return Navestidlo.MistoZastaveni; }
-}
+            if (tags[getRootForType(SignalType.Stop) + ':caption'] === 'Os') {
+                return Navestidlo.MistoZastaveniOs;
+            } else {
+                return Navestidlo.MistoZastaveni;
+            }
+        }
 
         return Navestidlo.NejakeZastaveni;
     } else if (getRootForType(SignalType.Radio) in tags) {
-        if (tags[getRootForType(SignalType.Radio)] === SignalVariant.PredvestGsmRSite) { return Navestidlo.PredvestGsmRSite; }
-        if (tags[getRootForType(SignalType.Radio)] === SignalVariant.ZacatekGsmRSite) { return Navestidlo.ZacatekGsmRSite; }
-        if (tags[getRootForType(SignalType.Radio)] === SignalVariant.KonecGsmRSite) { return Navestidlo.KonecGsmRSite; }
-        if (tags[getRootForType(SignalType.Radio)] === SignalVariant.ZacatekAnalogoveSite) { return Navestidlo.ZacatekAnalogoveSite; }
-        if (tags[getRootForType(SignalType.Radio)] === SignalVariant.KonecAnalogoveSite) { return Navestidlo.KonecAnalogoveSite; }
+        if (tags[getRootForType(SignalType.Radio)] === SignalVariant.PredvestGsmRSite) {
+            return Navestidlo.PredvestGsmRSite;
+        }
+        if (tags[getRootForType(SignalType.Radio)] === SignalVariant.ZacatekGsmRSite) {
+            return Navestidlo.ZacatekGsmRSite;
+        }
+        if (tags[getRootForType(SignalType.Radio)] === SignalVariant.KonecGsmRSite) {
+            return Navestidlo.KonecGsmRSite;
+        }
+        if (tags[getRootForType(SignalType.Radio)] === SignalVariant.ZacatekAnalogoveSite) {
+            return Navestidlo.ZacatekAnalogoveSite;
+        }
+        if (tags[getRootForType(SignalType.Radio)] === SignalVariant.KonecAnalogoveSite) {
+            return Navestidlo.KonecAnalogoveSite;
+        }
 
         return Navestidlo.NejakyRadiovnik;
     } else if (getRootForType(SignalType.Crossing) in tags) {
-        if (tags[getRootForType(SignalType.Crossing)] === SignalVariant.Prejezdnik) { return Navestidlo.Prejezdnik; }
+        if (tags[getRootForType(SignalType.Crossing)] === SignalVariant.Prejezdnik) {
+            return Navestidlo.Prejezdnik;
+        }
     } else if (getRootForType(SignalType.StationDistant) in tags) {
-        if (tags[getRootForType(SignalType.StationDistant)] === SignalVariant.VlakSeBliziKZastavce) { return Navestidlo.VlakSeBliziKZastavce; }
-        if (tags[getRootForType(SignalType.StationDistant)] === SignalVariant.NavestidloSloucenoSPredvesti) { return Navestidlo.NavestidloSloucenoSPredvesti; }
+        if (tags[getRootForType(SignalType.StationDistant)] === SignalVariant.VlakSeBliziKZastavce) {
+            return Navestidlo.VlakSeBliziKZastavce;
+        }
+        if (tags[getRootForType(SignalType.StationDistant)] === SignalVariant.NavestidloSloucenoSPredvesti) {
+            return Navestidlo.NavestidloSloucenoSPredvesti;
+        }
     } else if (getRootForType(SignalType.ResettingSwitch) in tags) {
-        if (tags[getRootForType(SignalType.ResettingSwitch)] === SignalVariant.NavestidloSamovratneVyhybky) { return Navestidlo.NavestidloSamovratneVyhybky; }
+        if (tags[getRootForType(SignalType.ResettingSwitch)] === SignalVariant.NavestidloSamovratneVyhybky) {
+            return Navestidlo.NavestidloSamovratneVyhybky;
+        }
     } else if (getRootForType(SignalType.Whistle) in tags) {
-        if (tags[getRootForType(SignalType.Whistle)] === SignalVariant.Piskejte) { return Navestidlo.Piskejte; }
+        if (tags[getRootForType(SignalType.Whistle)] === SignalVariant.Piskejte) {
+            return Navestidlo.Piskejte;
+        }
     }
 
     return Navestidlo.NejakeNavestidlo;
@@ -394,7 +478,7 @@ function determineNavestidlo(tags) {
 
 function renderButtonWall(selection, title, options, back, noMargin) {
 
-    const entries = Object.entries(options || {}).map(([ text, action ]) => ({ text, action}));
+    const entries = Object.entries(options || {}).map(([text, action]) => ({ text, action }));
 
     let wrapper = selection.selectAll('div.form-field')
         .data([0]);
@@ -500,7 +584,6 @@ function renderButtonWall(selection, title, options, back, noMargin) {
 }
 
 
-
 function customPreset(rawPreset) {
 
     const { id, label, strings, ...rest } = rawPreset;
@@ -513,7 +596,9 @@ function customPreset(rawPreset) {
 
 
     function getText(scope) {
-        if (!scope?.startsWith('options.')) { return null; }
+        if (!scope?.startsWith('options.')) {
+            return null;
+        }
 
         const option = scope?.split('.')?.[1];
         const replacement = strings?.options?.[option];
@@ -525,11 +610,11 @@ function customPreset(rawPreset) {
         const replacement = getText(scope);
 
         if (replacement !== null) {
- return {
+            return {
                 ...replacements,
                 default: replacement,
             };
-}
+        }
 
         return replacements;
     }
@@ -560,18 +645,18 @@ function uiFieldWrapper(context, preset, key, showInfo) {
                 info: showInfo
             }
         )
-        .on(
-            'change',
-            function(t, onInput) {
-                dispatch.call('change', this, t[key], onInput);
-            }
-        );
+            .on(
+                'change',
+                function (t, onInput) {
+                    dispatch.call('change', this, t[key], onInput);
+                }
+            );
 
     const wrapper = {};
 
     wrapper.render = field.render;
 
-    wrapper.value = function(value) {
+    wrapper.value = function (value) {
         field.tags({ [key]: value });
         return wrapper;
     };
@@ -585,12 +670,12 @@ function addMappingWrapper(func, opts) {
 
     const eventMapper = opts?.eventMapper ?? (v => v);
 
-    return function() {
+    return function () {
 
         const dispatch = d3_dispatch('change');
 
         const val = func(...arguments);
-        val.on('change', e => dispatch.call('change', this, eventMapper(e)) );
+        val.on('change', e => dispatch.call('change', this, eventMapper(e)));
 
         const obj = {
             render: val.render,
@@ -687,6 +772,7 @@ export function uiFieldOrmczSignal(field, context) {
 
         slouceno_s_predvesti: undefined,
         posledni_autoblok: undefined,
+        predvest_type: 'no',
         stit_op: undefined,
 
         caption: undefined,
@@ -751,14 +837,20 @@ export function uiFieldOrmczSignal(field, context) {
         state.navestidlo = determineNavestidlo(tags);
 
         let primaryType = getPrimaryTypeForNavestidlo(state.navestidlo);
-        if (primaryType === SignalType.Main && getRootForType(SignalType.Combined) in tags) { primaryType = SignalType.Combined; }
+        if (primaryType === SignalType.Main && getRootForType(SignalType.Combined) in tags) {
+            primaryType = SignalType.Combined;
+        }
         let primaryRoot = getRootForType(primaryType);
 
-        state.form = tags[ primaryRoot + ':form' ] || state.form;
-        if (!Object.values(SignalForm).includes(state.form)) { state.form = undefined; }
+        state.form = tags[primaryRoot + ':form'] || state.form;
+        if (!Object.values(SignalForm).includes(state.form)) {
+            state.form = undefined;
+        }
 
-        state.height = tags[ primaryRoot + ':height' ] || state.height;
-        if (!Object.values(SignalHeight).includes(state.height)) { state.height = undefined; }
+        state.height = tags[primaryRoot + ':height'] || state.height;
+        if (!Object.values(SignalHeight).includes(state.height)) {
+            state.height = undefined;
+        }
 
         if (state.height === undefined) {
             if ([
@@ -784,15 +876,14 @@ export function uiFieldOrmczSignal(field, context) {
         }
 
 
-
-        state.speed = tags[ primaryRoot + ':speed' ] || state.speed;
+        state.speed = tags[primaryRoot + ':speed'] || state.speed;
 
         state.functions =
-            (tags[ primaryRoot + ':function' ] || null)
+            (tags[primaryRoot + ':function'] || null)
                 ?.split(';')?.map(s => s.trim()) || Array.from(state.functions);
 
 
-        state.substitute = tags[ primaryRoot + ':substitute_signal' ] || state.substitute;
+        state.substitute = tags[primaryRoot + ':substitute_signal'] || state.substitute;
         if (state.substitute === 'yes') {
             state.substitute = 'CZ-D1:privolavaci_navest';
             reapply = true;
@@ -811,13 +902,15 @@ export function uiFieldOrmczSignal(field, context) {
 
 
         state.states =
-            (tags[ primaryRoot + ':states' ] || null)
+            (tags[primaryRoot + ':states'] || null)
                 ?.split(';')?.map(s => s.trim()) || Array.from(state.states);
 
         if (state.states.length === 0) {
             switch (state.navestidlo) {
                 case Navestidlo.Hlavni:
-                    if (state.functions.length === 0) { break; }
+                    if (state.functions.length === 0) {
+                        break;
+                    }
                     if (state.functions.includes('entry') || state.functions.includes('block')) {
                         state.states = [SignalState.Stuj, SignalState.Vystraha, SignalState.Volno];
                         reapply = true;
@@ -830,15 +923,15 @@ export function uiFieldOrmczSignal(field, context) {
                     }
                     break;
                 case Navestidlo.OpakovaciPredvest:
-                    state.states = [ SignalState.OpakovaniVystraha, SignalState.OpakovaniVolno ];
+                    state.states = [SignalState.OpakovaniVystraha, SignalState.OpakovaniVolno];
                     reapply = true;
                     break;
                 case Navestidlo.SamostatnaPredvest:
-                    state.states = [ SignalState.Vystraha, SignalState.Volno ];
+                    state.states = [SignalState.Vystraha, SignalState.Volno];
                     reapply = true;
                     break;
                 case Navestidlo.Seradovaci:
-                    state.states = [ SignalState.PosunZakazan, SignalState.PosunDovolen ];
+                    state.states = [SignalState.PosunZakazan, SignalState.PosunDovolen];
                     reapply = true;
                     break;
             }
@@ -846,26 +939,38 @@ export function uiFieldOrmczSignal(field, context) {
 
 
         state.currentSpeeds =
-            (tags[ getRootForType(SignalType.SpeedLimit) + ':states' ] || null)
+            (tags[getRootForType(SignalType.SpeedLimit) + ':states'] || null)
                 ?.split(';')?.map(s => s.trim()) || Array.from(state.currentSpeeds);
 
 
         state.distantSpeeds =
-            (tags[ getRootForType(SignalType.SpeedLimitDistant) + ':states' ] || null)
+            (tags[getRootForType(SignalType.SpeedLimitDistant) + ':states'] || null)
                 ?.split(';')?.map(s => s.trim()) || Array.from(state.distantSpeeds);
 
 
-        if (tags[ getRootForType(SignalType.StationDistant) ] === SignalVariant.NavestidloSloucenoSPredvesti) { state.slouceno_s_predvesti = 'yes'; }
+        if (tags[getRootForType(SignalType.StationDistant)] === SignalVariant.NavestidloSloucenoSPredvesti) {
+            state.slouceno_s_predvesti = 'yes';
+        }
 
-        if (tags[ getRootForType(SignalType.StationDistant) ] === SignalVariant.PosledniOddiloveNavestidlo) { state.posledni_autoblok = 'yes'; }
+        if (tags[getRootForType(SignalType.StationDistant)] === SignalVariant.PosledniOddiloveNavestidlo) {
+            state.posledni_autoblok = 'yes';
+        }
 
-        if (tags[ getRootForType(SignalType.CrossingHint) ] === SignalVariant.StitOp) { state.stit_op = 'yes'; }
+        if (tags[getRootForType(SignalType.StationDistant)] === SignalVariant.StanovisteSamostatnePredvesti) {
+            state.predvest_type = tags[getRootForType(SignalType.StationDistant) + ':type'] ?? 'yes';
+        } else {
+            state.predvest_type = 'no';
+        }
+
+        if (tags[getRootForType(SignalType.CrossingHint)] === SignalVariant.StitOp) {
+            state.stit_op = 'yes';
+        }
 
         state.caption = tags[primaryRoot + ':caption'];
         state.frequency = tags[primaryRoot + ':frequency'];
         state.repeated = tags[primaryRoot + ':repeated'];
         state.shortened = tags[primaryRoot + ':shortened'];
-        state.deactivated = tags[ primaryRoot + ':deactivated' ];
+        state.deactivated = tags[primaryRoot + ':deactivated'];
 
         if ([
             Navestidlo.NejakyRychlostnik,
@@ -874,15 +979,18 @@ export function uiFieldOrmczSignal(field, context) {
             Navestidlo.RychlostnikNSPruhy,
             Navestidlo.RychlostnikNS,
             Navestidlo.RychlostnikR
-        ].includes(state.navestidlo)) { state.immediate = tags[primaryRoot + ':type'] === 'immediate' ? 'yes' : undefined; }
+        ].includes(state.navestidlo)) {
+            state.immediate = tags[primaryRoot + ':type'] === 'immediate' ? 'yes' : undefined;
+        }
 
-        if (reapply) { setTimeout(updateTags); }
+        if (reapply) {
+            setTimeout(updateTags);
+        }
     }
 
     function updateTags() {
 
-        const computedTags = { };
-
+        const computedTags = {};
 
 
         computedTags['railway:signal:position'] = state.position;
@@ -902,7 +1010,9 @@ export function uiFieldOrmczSignal(field, context) {
                 if (state.distantSpeeds.length > 0
                     || state.states.includes(SignalState.Vystraha)
                     || state.states.includes(SignalState.OpakovaniVystraha)
-                ) { primaryType = SignalType.Combined; }
+                ) {
+                    primaryType = SignalType.Combined;
+                }
             }
 
 
@@ -918,12 +1028,18 @@ export function uiFieldOrmczSignal(field, context) {
                     Navestidlo.OpakovaciPredvest,
                     Navestidlo.Seradovaci
                 ].includes(state.navestidlo)
-            ) { computedTags[primaryRoot + ':form'] = SignalForm.Light; } else if (
+            ) {
+                computedTags[primaryRoot + ':form'] = SignalForm.Light;
+            } else if (
                 [
                     Navestidlo.Vyckavaci,
                     Navestidlo.Prejezdnik
                 ].includes(state.navestidlo)
-            ) { computedTags[primaryRoot + ':form'] = state.form ?? SignalForm.Sign; } else { computedTags[primaryRoot + ':form'] = SignalForm.Sign; }
+            ) {
+                computedTags[primaryRoot + ':form'] = state.form ?? SignalForm.Sign;
+            } else {
+                computedTags[primaryRoot + ':form'] = SignalForm.Sign;
+            }
 
             // Height
             if (
@@ -972,8 +1088,12 @@ export function uiFieldOrmczSignal(field, context) {
                     Navestidlo.Hlavni
                 ].includes(state.navestidlo)
             ) {
-                if (state.substitute !== undefined) { computedTags[primaryRoot + ':substitute_signal'] = state.substitute; }
-                if (state.functions.length > 0) { computedTags[primaryRoot + ':function'] = state.functions.join(';'); }
+                if (state.substitute !== undefined) {
+                    computedTags[primaryRoot + ':substitute_signal'] = state.substitute;
+                }
+                if (state.functions.length > 0) {
+                    computedTags[primaryRoot + ':function'] = state.functions.join(';');
+                }
                 if (state.stit_op === 'yes') {
                     computedTags[getRootForType(SignalType.CrossingHint)] = SignalVariant.StitOp;
                     computedTags[getRootForType(SignalType.CrossingHint) + ':form'] = SignalForm.Sign;
@@ -984,6 +1104,21 @@ export function uiFieldOrmczSignal(field, context) {
                 }
                 if (state.posledni_autoblok === 'yes') {
                     computedTags[getRootForType(SignalType.StationDistant)] = SignalVariant.PosledniOddiloveNavestidlo;
+                    computedTags[getRootForType(SignalType.StationDistant) + ':form'] = SignalForm.Sign;
+                }
+            }
+
+            // distant minor
+            if (
+                [
+                    Navestidlo.SamostatnaPredvest
+                ].includes(state.navestidlo)
+            ) {
+                if (state.predvest_type !== 'no') {
+                    computedTags[getRootForType(SignalType.StationDistant)] = SignalVariant.StanovisteSamostatnePredvesti;
+                    if (state.predvest_type !== 'yes') {
+                        computedTags[getRootForType(SignalType.StationDistant) + ':type'] = state.predvest_type;
+                    }
                     computedTags[getRootForType(SignalType.StationDistant) + ':form'] = SignalForm.Sign;
                 }
             }
@@ -1009,11 +1144,15 @@ export function uiFieldOrmczSignal(field, context) {
                     Navestidlo.PredvestnikN,
                     Navestidlo.HorniPredvestnikN,
                     Navestidlo.PredvestnikNS,
-                    Navestidlo.PredvestnikR
+                    Navestidlo.PredvestnikR,
+                    Navestidlo.Oznacnik,
+                    Navestidlo.NavestidloSloucenoSPredvesti
                 ].includes(state.navestidlo)
             ) {
- if (state.catenary_mast === 'yes') { computedTags['railway:signal:catenary_mast'] = 'yes'; }
-}
+                if (state.catenary_mast === 'yes') {
+                    computedTags['railway:signal:catenary_mast'] = 'yes';
+                }
+            }
 
             if ([
                 Navestidlo.NejakyRychlostnik,
@@ -1023,7 +1162,9 @@ export function uiFieldOrmczSignal(field, context) {
                 Navestidlo.RychlostnikNS,
                 Navestidlo.RychlostnikR
             ].includes(state.navestidlo)) {
-                if (state.immediate === 'yes') { computedTags[primaryRoot + ':type'] = 'immediate'; }
+                if (state.immediate === 'yes') {
+                    computedTags[primaryRoot + ':type'] = 'immediate';
+                }
             }
 
             if (
@@ -1036,10 +1177,14 @@ export function uiFieldOrmczSignal(field, context) {
                     Navestidlo.VlakSeBliziKZastavce
                 ].includes(state.navestidlo)
             ) {
- if (state.shortened === 'yes') { computedTags[primaryRoot + ':shortened'] = 'yes'; }
-}
+                if (state.shortened === 'yes') {
+                    computedTags[primaryRoot + ':shortened'] = 'yes';
+                }
+            }
 
-            if (state.deactivated === 'yes') { computedTags[primaryRoot + ':deactivated'] = 'yes'; }
+            if (state.deactivated === 'yes') {
+                computedTags[primaryRoot + ':deactivated'] = 'yes';
+            }
 
             // states
             if (
@@ -1051,8 +1196,13 @@ export function uiFieldOrmczSignal(field, context) {
                     Navestidlo.NavestidloSamovratneVyhybky
                 ].includes(state.navestidlo)
             ) {
-                if (state.states.length > 0) { computedTags[primaryRoot + ':states'] = state.states.join(';'); }
-
+                if (state.states.length > 0) {
+                    state.states = [
+                        ...StateOrder.filter(x => state.states.includes(x)),
+                        ...state.states.filter(x => !StateOrder.includes(x))
+                    ];
+                    computedTags[primaryRoot + ':states'] = state.states.join(';');
+                }
             } else if (
                 [
                     Navestidlo.Vyckavaci
@@ -1092,9 +1242,13 @@ export function uiFieldOrmczSignal(field, context) {
                 const speeds = state.currentSpeeds
                     .map(str => {
                         let str2 = str;
-                        if (str === SignalState.Off) { return [ 0, SignalState.Off ]; }
-                        if (str.startsWith('CZ-D1:')) { str2 = str.substring('CZ-D1:'.length); }
-                        return [ Number(str2.match(/\d+/)?.[0]), str ];
+                        if (str === SignalState.Off) {
+                            return [0, SignalState.Off];
+                        }
+                        if (str.startsWith('CZ-D1:')) {
+                            str2 = str.substring('CZ-D1:'.length);
+                        }
+                        return [Number(str2.match(/\d+/)?.[0]), str];
                     })
                     .sort((a, b) => a[0] - b[0]);
 
@@ -1104,11 +1258,10 @@ export function uiFieldOrmczSignal(field, context) {
 
                 computedTags[getRootForType(SignalType.SpeedLimit) + ':speed']
                     = [...new Set(speeds.map(([val]) => val))]
-                        .sort((a, b) => a - b)
-                        .map(a => a ? a : 'none')
-                        .join(';');
+                    .sort((a, b) => a - b)
+                    .map(a => a ? a : 'none')
+                    .join(';');
             }
-
 
 
             if (
@@ -1127,9 +1280,13 @@ export function uiFieldOrmczSignal(field, context) {
                 const speeds = state.distantSpeeds
                     .map(str => {
                         let str2 = str;
-                        if (str === SignalState.Off) { return [ 0, SignalState.Off ]; }
-                        if (str.startsWith('CZ-D1:')) { str2 = str.substring('CZ-D1:'.length); }
-                        return [ Number(str2.match(/\d+/)?.[0]), str ];
+                        if (str === SignalState.Off) {
+                            return [0, SignalState.Off];
+                        }
+                        if (str.startsWith('CZ-D1:')) {
+                            str2 = str.substring('CZ-D1:'.length);
+                        }
+                        return [Number(str2.match(/\d+/)?.[0]), str];
                     })
                     .sort((a, b) => {
                         // First compare numerically by first key
@@ -1148,26 +1305,38 @@ export function uiFieldOrmczSignal(field, context) {
 
                 let distantTags
                     = [...new Set(speeds.map(([val]) => val))]
-                        .sort((a, b) => a - b)
-                        .map(a => a ? a : 'none')
-                        .join(';');
+                    .sort((a, b) => a - b)
+                    .map(a => a ? a : 'none')
+                    .join(';');
 
-                if (!distantTags.includes('none') && state.states.includes(SignalState.Volno)) { distantTags = 'none;' + distantTags; }
+                if (!distantTags.includes('none') && state.states.includes(SignalState.Volno)) {
+                    distantTags = 'none;' + distantTags;
+                }
 
                 computedTags[getRootForType(SignalType.SpeedLimitDistant) + ':speed'] = distantTags;
             }
 
-            if (!!state.caption && state.navestidlo === Navestidlo.LichobeznikovaTabulka) { computedTags[primaryRoot + ':caption'] = state.caption; }
+            if (!!state.caption && state.navestidlo === Navestidlo.LichobeznikovaTabulka) {
+                computedTags[primaryRoot + ':caption'] = state.caption;
+            }
 
-            if (!!state.caption && state.navestidlo === Navestidlo.Piskejte) { computedTags[primaryRoot + ':caption'] = state.caption; }
+            if (!!state.caption && state.navestidlo === Navestidlo.Piskejte) {
+                computedTags[primaryRoot + ':caption'] = state.caption;
+            }
 
-            if (!!state.frequency && state.navestidlo === Navestidlo.ZacatekAnalogoveSite) { computedTags[primaryRoot + ':frequency'] = state.frequency; }
+            if (!!state.frequency && state.navestidlo === Navestidlo.ZacatekAnalogoveSite) {
+                computedTags[primaryRoot + ':frequency'] = state.frequency;
+            }
 
             if (state.navestidlo === Navestidlo.Prejezdnik) {
 
-                if (state.caption) { computedTags[primaryRoot + ':caption'] = state.caption; }
+                if (state.caption) {
+                    computedTags[primaryRoot + ':caption'] = state.caption;
+                }
 
-                if (state.repeated === 'yes') { computedTags[primaryRoot + ':repeated'] = 'yes'; }
+                if (state.repeated === 'yes') {
+                    computedTags[primaryRoot + ':repeated'] = 'yes';
+                }
 
             }
 
@@ -1182,9 +1351,11 @@ export function uiFieldOrmczSignal(field, context) {
 
             for (let key in unrelatedTags) {
                 if (
-                    [ 'railway:signal:position', 'railway:signal:direction', 'railway:signal:catenary_mast' ].includes(key) ||
+                    ['railway:signal:position', 'railway:signal:direction', 'railway:signal:catenary_mast'].includes(key) ||
                     Object.values(SignalType).some(variant => key.startsWith(`railway:signal:${variant}`))
-                ) { delete unrelatedTags[key]; }
+                ) {
+                    delete unrelatedTags[key];
+                }
             }
 
             return { ...unrelatedTags, ...computedTags };
@@ -1195,16 +1366,17 @@ export function uiFieldOrmczSignal(field, context) {
     }
 
 
-
     function changeState(update) {
         const oldNavestidlo = state.navestidlo;
         const newNavestidlo = update.navestidlo;
 
-        state = {...state, ...update };
+        state = { ...state, ...update };
         updateTags();
 
         if (newNavestidlo && newNavestidlo === oldNavestidlo) // TODO: this checking could be improved
-            { render(views.forNavestidlo[newNavestidlo ?? oldNavestidlo]); }
+        {
+            render(views.forNavestidlo[newNavestidlo ?? oldNavestidlo]);
+        }
     }
 
     function renderChildInputs(selection, inputs) {
@@ -1220,7 +1392,7 @@ export function uiFieldOrmczSignal(field, context) {
             .classed('wrap-form-field', true)
             .merge(wrap);
 
-        wrap.each(function(field) {
+        wrap.each(function (field) {
             field.render(d3_select(this));
         });
     }
@@ -1256,13 +1428,10 @@ export function uiFieldOrmczSignal(field, context) {
     }
 
 
-
-
-
     // Custom functions for fast ui creation
     function makeAttachable(func, opts) {
 
-        return function() {
+        return function () {
             const val = func(...arguments);
 
             val.attach = (value, listener) => {
@@ -1299,9 +1468,6 @@ export function uiFieldOrmczSignal(field, context) {
     const uiMultiSelect = makeAttachable(_multiSelect);
 
 
-
-
-
     function ormczSignal(selection) {
         selection.classed('compound-field', true);
 
@@ -1313,8 +1479,6 @@ export function uiFieldOrmczSignal(field, context) {
             .classed('child-fields-container', true)
             .merge(container);
     }
-
-
 
     const templates = {};
 
@@ -1407,8 +1571,12 @@ export function uiFieldOrmczSignal(field, context) {
     templates.SpeedsOfRychlostnik = (add_NS_End) => uiSelect('Rychlost',
         (() => {
             const options = {};
-            for (let i = 5; i <= 160; i += 5) { options[`${i}`] = `${i}`; }
-            if (add_NS_End) { options.none = 'Konec NS'; }
+            for (let i = 5; i <= 160; i += 5) {
+                options[`${i}`] = `${i}`;
+            }
+            if (add_NS_End) {
+                options.none = 'Konec NS';
+            }
             return options;
         })(),
         { customValues: true }
@@ -1417,8 +1585,12 @@ export function uiFieldOrmczSignal(field, context) {
     templates.SpeedsOfPredvestnik = (add_NS_End) => uiSelect('Rychlost',
         (() => {
             const options = { '5': '5' };
-            for (let i = 10; i <= 160; i += 10) { options[`${i}`] = `${i}`; }
-            if (add_NS_End) { options.none = 'Konec NS'; }
+            for (let i = 10; i <= 160; i += 10) {
+                options[`${i}`] = `${i}`;
+            }
+            if (add_NS_End) {
+                options.none = 'Konec NS';
+            }
             return options;
         })(),
         { customValues: true }
@@ -1559,16 +1731,22 @@ export function uiFieldOrmczSignal(field, context) {
                     const options = {
                         [SignalState.Off]: 'Bez omezení'
                     };
-                    for (let i = 30; i <= 160; i += 10) { options[`CZ-D1:rychlost_${i}`] = `${i}`; }
+                    for (let i = 30; i <= 160; i += 10) {
+                        options[`CZ-D1:rychlost_${i}`] = `${i}`;
+                    }
                     return options;
                 })()
             ).attachTo('currentSpeeds'),
 
             uiMultiSelect('Předvěst rychlosti',
                 (() => {
-                    const options = { };
-                    for (let i = 40; i <= 160; i += 20) { options[`CZ-D1:ocekavej_${i}`] = `${i}`; }
-                    for (let i = 40; i <= 160; i += 20) { options[`CZ-D1:opakovani_${i}`] = `Opakování ${i}`; }
+                    const options = {};
+                    for (let i = 40; i <= 160; i += 20) {
+                        options[`CZ-D1:ocekavej_${i}`] = `${i}`;
+                    }
+                    for (let i = 40; i <= 160; i += 20) {
+                        options[`CZ-D1:opakovani_${i}`] = `Opakování ${i}`;
+                    }
                     return options;
                 })()
             ).attachTo('distantSpeeds'),
@@ -1608,11 +1786,20 @@ export function uiFieldOrmczSignal(field, context) {
 
             uiMultiSelect('Omezení rychlosti',
                 (() => {
-                    const options = { };
-                    for (let i = 40; i <= 160; i += 20) { options[`CZ-D1:ocekavej_${i}`] = `${i}`; }
+                    const options = {};
+                    for (let i = 40; i <= 160; i += 20) {
+                        options[`CZ-D1:ocekavej_${i}`] = `${i}`;
+                    }
                     return options;
                 })()
             ).attachTo('distantSpeeds'),
+
+            uiSelect('Stanoviště předvěsti', {
+                'station': 'Vjezdové, Cestové, Odjezdové',
+                'block_or_protection': 'Oddílové, Krycí',
+                'no': 'Nemá',
+                'yes': 'Neznámá',
+            }).attachTo('predvest_type'),
 
             templates.SignalDeactivated()
         ];
@@ -1637,8 +1824,10 @@ export function uiFieldOrmczSignal(field, context) {
 
             uiMultiSelect('Omezení rychlosti',
                 (() => {
-                    const options = { };
-                    for (let i = 40; i <= 160; i += 20) { options[`CZ-D1:opakovani_${i}`] = `Opakování ${i}`; }
+                    const options = {};
+                    for (let i = 40; i <= 160; i += 20) {
+                        options[`CZ-D1:opakovani_${i}`] = `Opakování ${i}`;
+                    }
                     return options;
                 })()
             ).attachTo('distantSpeeds'),
@@ -1657,7 +1846,6 @@ export function uiFieldOrmczSignal(field, context) {
         const back = thenRenderView(views.CedulkyApod);
         return { title, inputs, back };
     };
-
 
 
     views.forNavestidlo[Navestidlo.NejakeSeradovaci] = views.default;
@@ -1697,7 +1885,7 @@ export function uiFieldOrmczSignal(field, context) {
 
     views.forNavestidlo[Navestidlo.Oznacnik] = () => {
         const title = 'Označník';
-        const inputs = templates.LeftRightOnlySignalPositioning();
+        const inputs = templates.SpeedSignalPositioning();
         const back = thenRenderView(views.CedulkyApod);
         return { title, inputs, back };
     };
@@ -1708,8 +1896,6 @@ export function uiFieldOrmczSignal(field, context) {
         const back = thenRenderView(views.CedulkyApod);
         return { title, inputs, back };
     };
-
-
 
 
     views.forNavestidlo[Navestidlo.NejakyRychlostnik] = () => {
@@ -1815,7 +2001,6 @@ export function uiFieldOrmczSignal(field, context) {
     };
 
 
-
     views.forNavestidlo[Navestidlo.NejakyPredvestnik] = () => {
         const title = 'Nějaký předvěstník';
 
@@ -1902,7 +2087,6 @@ export function uiFieldOrmczSignal(field, context) {
     };
 
 
-
     views.forNavestidlo[Navestidlo.Stuj] = () => {
         const title = 'Stůj';
         const inputs = templates.AnywhereSignalPositioning();
@@ -1916,7 +2100,6 @@ export function uiFieldOrmczSignal(field, context) {
         const back = thenRenderView(views.CedulkyApod);
         return { title, inputs, back };
     };
-
 
 
     views.forNavestidlo[Navestidlo.NejakeZastaveni] = () => {
@@ -1980,7 +2163,6 @@ export function uiFieldOrmczSignal(field, context) {
         const back = thenRenderFor(Navestidlo.NejakeZastaveni);
         return { title, inputs, back };
     };
-
 
 
     views.forNavestidlo[Navestidlo.NejakyRadiovnik] = () => {
@@ -2089,7 +2271,7 @@ export function uiFieldOrmczSignal(field, context) {
 
     views.forNavestidlo[Navestidlo.NavestidloSloucenoSPredvesti] = () => {
         const title = 'Návěstidlo sloučeno s předvěstí';
-        const inputs = templates.LeftRightOnlySignalPositioning();
+        const inputs = templates.SpeedSignalPositioning();
         const back = thenRenderView(views.CedulkyApod);
         return { title, inputs, back };
     };
@@ -2119,7 +2301,7 @@ export function uiFieldOrmczSignal(field, context) {
     };
 
 
-    ormczSignal.tags = function(newTags) {
+    ormczSignal.tags = function (newTags) {
         loadTags(newTags);
         render(views.forNavestidlo[state.navestidlo]);
     };
