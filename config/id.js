@@ -46,11 +46,13 @@ const osmApiConnections = [];
 
 if (ENV__ID_API_CONNECTION_CLIENT_ID !== null) {
     osmApiConnections.push({
+        url: 'https://www.openstreetmap.org',
         apiUrl: 'https://api.openstreetmap.org',
         client_id: ENV__ID_API_CONNECTION_CLIENT_ID
     });
 } else {
     osmApiConnections.push({
+        url: 'https://www.openstreetmap.org',
         apiUrl: 'https://api.openstreetmap.org',
         client_id: 'z4_V2c6Xz-FVBbTb28YCoyvtyE2HCRgfA_2UwR_-Xxg'
     });
