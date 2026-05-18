@@ -31,7 +31,8 @@ export function rendererMap(context) {
     var dispatch = d3_dispatch(
         'move', 'drawn',
         'crossEditableZoom', 'hitMinZoom',
-        'changeHighlighting', 'changeAreaFill'
+        'changeHighlighting', 'changeAreaFill',
+        'changeCustomColor'
     );
     var projection = context.projection;
     var curtainProjection = context.curtainProjection;
@@ -1124,6 +1125,8 @@ export function rendererMap(context) {
 
         prefs(kind, val ? 'yes' : 'no');
         updateCustomColor();
+        map.pan([0,0]);  // trigger a redraw
+        dispatch.call('changeCustomColor', this);
         return map;
     };
 

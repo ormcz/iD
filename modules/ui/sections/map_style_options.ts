@@ -125,7 +125,7 @@ export function uiSectionMapStyleOptions(context: iD.Context) {
     }
 
     context.map()
-        .on('changeHighlighting.ui_style, changeAreaFill.ui_style', section.reRender);
+        .on('changeHighlighting.ui_style, changeAreaFill.ui_style, changeCustomColor.ui_style', section.reRender);
 
     return section;
 }
