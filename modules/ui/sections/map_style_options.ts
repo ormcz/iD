@@ -6,6 +6,10 @@ import { uiSection } from '../section';
 
 export type MapStyle = 'wireframe' | 'area_fill' | 'highlight_edits';
 
+export const CustomColorsKinds = [ 'custom_color_signals', 'custom_color_rails' ] as const;
+export type CustomColor = typeof CustomColorsKinds[number];
+
+
 export function uiSectionMapStyleOptions(context: iD.Context) {
 
     const section = (uiSection('fill-area', context) as any)
@@ -33,11 +37,20 @@ export function uiSectionMapStyleOptions(context: iD.Context) {
             .call(drawListItems, ['highlight_edits'], 'checkbox', 'visual_diff', toggleHighlightEdited, () =>
                 context.surface().classed('highlight-edited')
             );
+
+        const container3 = selection.selectAll<HTMLUListElement, any>('ul.layer-custom-color-list')
+            .data([0]);
+
+        container3.enter()
+            .append('ul')
+            .attr('class', 'layer-list layer-custom-color-list')
+            .merge(container3)
+            .call(drawListItems, CustomColorsKinds, 'checkbox', 'custom_color', toggleCustomColor, isActiveCustomColor);
     }
 
     function drawListItems(
         selection: d3.Selection<HTMLUListElement>,
-        data: MapStyle[],
+        data: readonly (MapStyle | CustomColor)[],
         type: 'radio' | 'checkbox',
         name: string,
         change: any,
@@ -100,6 +113,15 @@ export function uiSectionMapStyleOptions(context: iD.Context) {
 
     function setFill(ignored: Event, d: string) {
         context.map().activeAreaFill(d);
+    }
+
+    function toggleCustomColor(d3_event: Event, d: string) {
+        d3_event.preventDefault();
+        context.map().toggleActiveCustomColor(d);
+    }
+
+    function isActiveCustomColor(d: string) {
+        return context.map().activeCustomColor(d) as boolean;
     }
 
     context.map()

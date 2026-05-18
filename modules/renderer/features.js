@@ -200,6 +200,10 @@ export function rendererFeatures(context) {
         ) && !osmLifecyclePrefixes[tags.railway];
     });
 
+    defineRule('catenary', function isRail(tags) {
+        return tags.power?.includes('catenary');
+    });
+
     defineRule('pistes', function isPiste(tags) {
         return tags['piste:type'];
     });

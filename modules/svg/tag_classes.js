@@ -12,10 +12,24 @@ export function svgTagClasses() {
     var statuses = Object.keys(osmLifecyclePrefixes);
     var secondaries = [
         'oneway', 'bridge', 'tunnel', 'embankment', 'cutting', 'barrier',
-        'surface', 'tracktype', 'footway', 'crossing', 'service', 'sport',
+        'surface', 'tracktype', 'footway', 'crossing', 'service', 'sport', 'usage',
         'public_transport', 'location', 'parking', 'golf', 'type', 'leisure',
-        'man_made', 'indoor', 'construction', 'proposed', 'bicycle', 'foot'
+        'man_made', 'indoor', 'construction', 'proposed', 'bicycle', 'foot',
     ];
+
+    var signalCategories = {
+        'main': 'main',
+        'main_repeated': 'main',
+        'combined': 'main',
+        'combined_repeated': 'main',
+        'distant': 'distant',
+        'distant_repeated': 'distant',
+        'shunting': 'shunting',
+        'shunting_repeated': 'shunting',
+        'speed_limit': 'speed',
+        'speed_limit_distant': 'speed'
+    };
+
     var _tags = function(entity) { return entity.tags; };
 
 
@@ -52,10 +66,10 @@ export function svgTagClasses() {
 
         // preserve base classes (nothing with `tag-`)
         var classes = value.trim().split(/\s+/)
-            .filter(function(klass) {
+            .filter(function (klass) {
                 return klass.length && !/^tag-/.test(klass);
             })
-            .map(function(klass) {  // special overrides for some perimeter strokes
+            .map(function (klass) {  // special overrides for some perimeter strokes
                 return (klass === 'line' || klass === 'area') ? (overrideGeometry || klass) : klass;
             });
 
@@ -123,6 +137,13 @@ export function svgTagClasses() {
             if (!v || v === 'no' || k === primary) continue;
             classes.push('tag-' + k);
             classes.push('tag-' + k + '-' + v);
+        }
+
+        // add railway signal tags
+        for (let [key, cls] of Object.entries(signalCategories)) {
+            if (t[`railway:signal:${key}`]) {
+                classes.push(`tag-railway-signal-${cls}`);
+            }
         }
 
         // For highways, look for surface tagging..

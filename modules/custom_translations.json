@@ -1,0 +1,18 @@
+{
+  "custom_color": {
+    "custom_color_signals": {
+      "description": "Color-code Signal Types",
+      "tooltip": "Display different signal types using different colors"
+    },
+    "custom_color_rails": {
+      "description": "Color-code Rail Service Tag",
+      "tooltip": "Assign different colors to common service & usage values"
+    }
+  },
+  "feature": {
+    "catenary": {
+      "description": "Catenary Features",
+      "tooltip": "Railway Catenary Masts & Portals"
+    }
+  }
+}

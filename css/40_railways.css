@@ -1,10 +1,4 @@
 /* railways */
-
-g.vertex.tag-power.tag-power-catenary_mast .stroke,
-g.point.tag-power.tag-power-catenary_mast .stroke {
-    fill: cyan;
-}
-
 path.line.shadow.tag-power.tag-power-catenary_portal {
     stroke-width: 14 !important;
 }
@@ -16,10 +10,58 @@ path.line.casing.tag-power.tag-power-catenary_portal {
 }
 
 path.line.stroke.tag-power.tag-power-catenary_portal {
-    stroke: cyan;
     stroke-linecap: butt;
     stroke-width: 3;
 }
+
+
+.custom_color_rails path.line.stroke.tag-railway.tag-usage.tag-usage-main {
+    stroke: #ff8800;
+}
+
+.custom_color_rails path.line.stroke.tag-railway.tag-usage.tag-usage-branch {
+    stroke: #f6ff00;
+}
+
+.custom_color_rails path.line.stroke.tag-railway.tag-service.tag-service-yard {
+    stroke: #00ffff;
+}
+
+.custom_color_rails path.line.stroke.tag-railway.tag-service.tag-service-siding {
+    stroke: #00ff00;
+}
+
+.custom_color_rails path.line.stroke.tag-railway.tag-service.tag-service-crossover {
+    stroke: #e15aff;
+}
+
+/*.custom_color_rails path.line.stroke.tag-railway.tag-service.tag-service-spur {*/
+/*    stroke: #a85b00;*/
+/*}*/
+
+
+
+.custom_color_signals g.vertex.tag-railway-signal-main .stroke,
+.custom_color_signals g.point.tag-railway-signal-main .stroke {
+    fill: #ff9292 !important;
+}
+
+.custom_color_signals g.vertex.tag-railway-signal-distant .stroke,
+.custom_color_signals g.point.tag-railway-signal-distant .stroke {
+    fill: #f1ff7b !important;
+}
+
+.custom_color_signals g.vertex.tag-railway-signal-shunting .stroke,
+.custom_color_signals g.point.tag-railway-signal-shunting .stroke {
+    fill: #96bcff;
+}
+
+.custom_color_signals g.vertex.tag-railway-signal-speed .stroke,
+.custom_color_signals g.point.tag-railway-signal-speed .stroke {
+    fill: #9aff96;
+}
+
+
 
 
 path.line.shadow.tag-power.tag-railway-platform_edge {

@@ -7,6 +7,25 @@ import { utilStringQs } from '../util';
 import { utilArrayUniq } from '../util/array';
 import { presetsCdnUrl } from '../../config/id.js';
 
+
+import RawCustomTranslations from '../custom_translations.json';
+
+function flattenTranslations(object, accumulator = {}, prefix = '') {
+    const prefixWithADot = prefix ? `${prefix}.` : '';
+    if (typeof object === 'object') {
+        for (let [key, value] of Object.entries(object)) {
+            flattenTranslations(value, accumulator, prefixWithADot + key);
+        }
+    } else {
+        accumulator[prefix] = object;
+    }
+    return accumulator;
+}
+
+const customTranslations = flattenTranslations(RawCustomTranslations);
+
+
+
 let _mainLocalizer = coreLocalizer(); // singleton
 let _t = _mainLocalizer.t;
 
@@ -15,6 +34,8 @@ export {
     // export `t` function for ease-of-use
     _t as t
 };
+
+
 
 //
 // coreLocalizer manages language and locale parameters including translated strings
@@ -370,6 +391,13 @@ export function coreLocalizer() {
               texts: [replacements.default],
               locale: null
           };
+        }
+
+        if (origStringId in customTranslations) {
+            return {
+                texts: [ customTranslations[origStringId] ],
+                locale: 'en'
+            };
         }
 
         const missing = `Missing ${locale} translation: ${origStringId}`;

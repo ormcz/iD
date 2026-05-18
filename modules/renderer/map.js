@@ -17,6 +17,7 @@ import { utilGetDimensions } from '../util/dimensions';
 import { utilRebind } from '../util/rebind';
 import { utilZoomPan } from '../util/zoom_pan';
 import { utilDoubleUp } from '../util/double_up';
+import { CustomColorsKinds } from '../ui/sections/map_style_options.ts';
 
 // constants
 var TILESIZE = 256;
@@ -224,6 +225,7 @@ export function rendererMap(context) {
 
         // must call after surface init
         updateAreaFill();
+        updateCustomColor();
 
         _doubleUpHandler.on('doubleUp.map', function(d3_event, p0) {
             if (!_dblClickZoomEnabled) return;
@@ -1115,6 +1117,27 @@ export function rendererMap(context) {
             surface.classed('fill-' + opt, Boolean(opt === activeFill));
         });
     }
+
+    map.activeCustomColor = function(kind, val) {
+        if (!arguments.length) return false;
+        if (arguments.length < 2) return prefs(kind) === 'yes' || false;
+
+        prefs(kind, val ? 'yes' : 'no');
+        updateCustomColor();
+        return map;
+    };
+
+    map.toggleActiveCustomColor = function(kind) {
+        map.activeCustomColor(kind, !map.activeCustomColor(kind));
+    };
+
+    function updateCustomColor() {
+        CustomColorsKinds.forEach(function(kind) {
+            surface.classed(kind, map.activeCustomColor(kind));
+        });
+    }
+
+
 
 
     map.layers = () => drawLayers;
