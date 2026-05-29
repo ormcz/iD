@@ -1,14 +1,14 @@
 {
-  "name": "@openstreetmap/id",
+  "name": "@ormcz/id-editor",
   "version": "2.40.0",
   "description": "A friendly editor for OpenStreetMap",
   "main": "dist/iD.min.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/openstreetmap/iD.git"
+    "url": "git+https://github.com/ormcz/id-editor.git"
   },
-  "homepage": "https://github.com/openstreetmap/iD",
-  "bugs": "https://github.com/openstreetmap/iD/issues",
+  "homepage": "https://github.com/ormcz/id-editor",
+  "bugs": "https://github.com/ormcz/id-editor/issues",
   "keywords": [
     "editor",
     "openstreetmap"
